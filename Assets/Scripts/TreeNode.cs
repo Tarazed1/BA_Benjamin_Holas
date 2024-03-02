@@ -1,39 +1,32 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
 
-namespace Insection
+public class TreeNode
 {
-    public class TreeNode
+    public string eventDescription; // The event description or narrative content for this node
+    public TreeNode parent;
+    public List<TreeNode> children = new List<TreeNode>();
+
+    public TreeNode(string eventDescription)
     {
-        public enum TreeWay
-        {
-            left, 
-            middleleft,
-            middle,
-            middleright,
-            right
-        }
+        this.eventDescription = eventDescription;
+        EventManager.instance.SubscribeToEvent(eventDescription, null); // Creates an entry in the Dictionary
+    }
 
-        public List<TreeNode> childNodes { get; private set; }
-        public TreeNode parentNode { get; private set; }
-        public List<TreeWay> treePath { get; private set; }
-        public string nodeEvent { get; private set; }
+    // Method to add a child to this node
+    public void AddChild(TreeNode childNode)
+    {
+        children.Add(childNode);
+        childNode.parent = this;
+    }
 
-        public TreeNode(TreeNode patent, string nodeEvent, List<TreeWay> treePath)
-        {
-            childNodes = new List<TreeNode>();
-            this.parentNode = patent;
-            this.nodeEvent = nodeEvent;
-            this.treePath = treePath;
-            patent.AddChild(this);
-        }
+    // Method to check if this node is a leaf node (has no children)
+    public bool IsLeafNode()
+    {
+        return children.Count == 0;
+    }
 
-        public void AddChild(TreeNode child)
-        {
-            if(child != null && !childNodes.Contains(child))
-                childNodes.Add(child);
-        }
+    public bool IsRootNode()
+    { 
+        return parent == null;
     }
 }

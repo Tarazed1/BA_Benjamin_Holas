@@ -8,6 +8,7 @@ namespace Insection
     {
         //root
         public const string EVENT_START = "start";
+        public const string EVENT_END = "end";
         //forst choice
         public const string EVENT_WATCH_WORKERS = "watch_workers";
         public const string EVENT_JOIN_MEETING = "join_meeting";
