@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Path_Point
   - Path_Choice
+  - Path_Animation
   layers:
   - Default
   - TransparentFX

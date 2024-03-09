@@ -1,6 +1,8 @@
+using Cinemachine;
 using Insection;
 using System.Collections;
 using System.Net.Sockets;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Rendering.Universal;
@@ -10,15 +12,19 @@ public class ProtagonistController : MonoBehaviour
 {
     private const string PATH_POINT_TAG = "Path_Point";
     private const string PATH_CHOICE_TAG = "Path_Choice";
+    private const string PATH_ANIMATION_TAG = "Path_Animation";
 
     public float moveSpeed = 3f; // Adjust the bee's movement speed as needed
+    public float turnSpeed = 5f;
     public float stoppingDistance = 0.1f; // Adjust the distance to stop near the destination
-    public Animation idleAnimation; // Reference to the idle animation
+    public AnimationClip idleAnimation; // Reference to the idle animation
     public Rigidbody rb;
     public GameObject gameObjectTree;
     public PlayableDirector timeline;
     public StoryTree storyTree;
     public DecisionBoard decisionBoard;
+    public CameraShake cameraShake;
+    public CinemachineVirtualCamera virtualCamera;
 
     private Vector3 currentDestination;
     private bool isMoving = false;
@@ -28,6 +34,7 @@ public class ProtagonistController : MonoBehaviour
 
     private void Awake()
     {
+        if(cameraShake ==  null) cameraShake = GetComponent<CameraShake>();
         storyTree = new StoryTree();
     }
 
@@ -83,12 +90,13 @@ public class ProtagonistController : MonoBehaviour
 
     public void SetDestination(Transform destination)
     {
-        moveSpeed = destination.GetComponent<NodeValueContainer>().speed;
+        if(destination != this.transform) moveSpeed = destination.GetComponent<NodeValueContainer>().speed;
+        else moveSpeed = 100;
         currentDestination = destination.position;
         isMoving = true;
         if (idleAnimation != null)
         {
-            animator.Play("Default"); // Replace "Default" with the name of your movement animation
+            animator.Play(idleAnimation.name); // Replace "Default" with the name of your movement animation
         }
     }
 
@@ -100,19 +108,41 @@ public class ProtagonistController : MonoBehaviour
 
         string[] descriptions = new string[4] { "", "", "", "" };
         Transform alternateRoute = null;
+
+        if(currentDestinationPoint.childCount == 0)
+        {
+            Debug.Log("Reached a Leaf.");
+            yield break;
+        }
+
         //look for Choices in the Tree
         foreach (Transform t in currentDestinationPoint)
         {
             if (t.tag == PATH_CHOICE_TAG)
             {
+                Debug.Log("Found a Choice.");
+
                 NodeValueContainer nodeValueContainer = t.gameObject.GetComponent<NodeValueContainer>();
-                descriptions[numberDecisions] = nodeValueContainer.choiceDescription;
-                if (nodeValueContainer.choiceRedirect)
+
+                if (nodeValueContainer != null)
                 {
-                    alternateDecision = numberDecisions;
-                    alternateRoute = nodeValueContainer.choiceRedirect.transform;
+                    if(nodeValueContainer.choiceDescription == null)
+                    {
+                        Debug.LogWarning("No String on this NodeValueContainer.");
+                        nodeValueContainer.choiceDescription = "empty choice";
+                    }
+                    descriptions[numberDecisions] = nodeValueContainer.choiceDescription;
+                    if (nodeValueContainer.choiceRedirect)
+                    {
+                        Debug.Log("Found a alternate Route.");
+                        alternateDecision = numberDecisions;
+                        alternateRoute = nodeValueContainer.choiceRedirect.transform;
+                    }
+                    numberDecisions++;
+                } else
+                {
+                    Debug.LogError("No NodeValueContainer on this Choice.");
                 }
-                numberDecisions++;
             }
             else
                 numberPoints++;
@@ -121,11 +151,12 @@ public class ProtagonistController : MonoBehaviour
         }
 
         decisionBoard.InitDecision(numberDecisions, descriptions[0], descriptions[1], descriptions[2], descriptions[3]);
+
         while(!decisionBoard.AwaitDecision()) yield return null;
 
         Debug.Log("Decision was made");
         decisionBoard.UnInitDecision();
-        Transform nextPoint = null;
+        Transform nextPoint;
         if (decisionBoard.GetDecision() == alternateDecision && alternateRoute != null)
         {
             nextPoint = alternateRoute.transform;
@@ -142,12 +173,33 @@ public class ProtagonistController : MonoBehaviour
         SetDestination(currentDestinationPoint.GetChild(0));
     }
 
+    private IEnumerator AnimateProtagonist(NodeValueContainer nvc)
+    {
+        float duration = nvc.animDuration;
+        animator.Play(nvc.anim.name);
+        if(nvc.lookAt) virtualCamera.LookAt = nvc.lookAt;
+
+        Debug.Log($"Playing Animation {nvc.anim.name} for {duration} seconds.");
+
+        while(duration > 0f)
+        {
+            duration -= Time.deltaTime;
+
+            yield return null;
+        }
+
+        nvc.lookAt = null;
+        SetDestination(transform);
+    }
+
     private void MoveToDestination()
     {
         Vector3 direction = currentDestination - transform.position;
 
         if (direction.magnitude <= stoppingDistance)
         {
+            cameraShake.Reset();
+
             // Reached the destination
             // Look for a new Point in the Tree, if there is no more point look for choices
             if (currentDestinationPoint.GetChild(destinationCount + 1).tag == PATH_POINT_TAG)
@@ -155,7 +207,16 @@ public class ProtagonistController : MonoBehaviour
                 destinationCount++;               
                 SetDestination(currentDestinationPoint.GetChild(destinationCount));
             }
-            else
+            else if (currentDestinationPoint.GetChild(destinationCount + 1).tag == PATH_ANIMATION_TAG)
+            {
+                Debug.Log("Found Animation.");
+
+                isMoving = false;
+                rb.velocity = Vector3.zero; // Stop the rigidbody's velocity
+
+                StartCoroutine(AnimateProtagonist(currentDestinationPoint.GetChild(destinationCount + 1).GetComponent<NodeValueContainer>()));
+                destinationCount++;
+            } else
             {
                 StartCoroutine(OfferDecicion());
 
@@ -171,7 +232,12 @@ public class ProtagonistController : MonoBehaviour
         {
             // Move towards the destination using velocity
             rb.velocity = direction.normalized * moveSpeed;
-            transform.LookAt(currentDestination);
+
+            cameraShake.MoveCamera(rb.velocity.magnitude);
+
+            // Smoothly rotate towards the destination
+            Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
         }
     }
 }

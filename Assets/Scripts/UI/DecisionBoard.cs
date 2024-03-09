@@ -22,32 +22,34 @@ public class DecisionBoard : MonoBehaviour
 
     public void InitDecision(int numberDecisions, string firstChoice = null, string secondChoice = null, string thirdChoice = null, string fourthChoice = null)
     {
-        Debug.Log(numberDecisions);
+        Debug.Log("Number of Decisions: " + numberDecisions +  "\n"+firstChoice + "\n"+secondChoice + "\n"+thirdChoice + "\n"+fourthChoice);
         decisionWasMade = false;
         if (numberDecisions > 0)
         {
             decisionButton1.SetActive(true);
             if (!string.IsNullOrEmpty(firstChoice))
-                decisionButton1.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>().text = firstChoice;
+                decisionButton1.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = firstChoice;
         }
         if (numberDecisions > 1)
         {
             decisionButton2.SetActive(true);
             if (!string.IsNullOrEmpty(secondChoice)) 
-                decisionButton1.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>().text = secondChoice;
+                decisionButton2.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = secondChoice;
         }
         if (numberDecisions > 2) {
             decisionButton3.SetActive(true);
             if (!string.IsNullOrEmpty(thirdChoice))
-                decisionButton1.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>().text = thirdChoice;
+                decisionButton3.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = thirdChoice;
         }
         if (numberDecisions > 3)
         {
             decisionButton4.SetActive(true);
             if (!string.IsNullOrEmpty(fourthChoice))
-                decisionButton1.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>().text = fourthChoice;
+                decisionButton4.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = fourthChoice;
         }
         backGround.SetActive(true);
+
+        Debug.Log("Successfully activated the DecisionBorad.");
     }
 
     public bool AwaitDecision()

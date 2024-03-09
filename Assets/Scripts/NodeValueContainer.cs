@@ -10,4 +10,9 @@ public class NodeValueContainer : MonoBehaviour
     [Header("Choice Values")]
     public string choiceDescription = "";
     public GameObject choiceRedirect;
+
+    [Header("Animation Values")]
+    public AnimationClip anim;
+    public float animDuration = 1f;
+    public Transform lookAt;
 }
