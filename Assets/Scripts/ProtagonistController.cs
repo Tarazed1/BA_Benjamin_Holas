@@ -1,12 +1,9 @@
 using Cinemachine;
 using Insection;
 using System.Collections;
-using System.Net.Sockets;
-using UnityEditor.Experimental.GraphView;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Timeline;
 
 public class ProtagonistController : MonoBehaviour
 {
@@ -23,7 +20,10 @@ public class ProtagonistController : MonoBehaviour
     public GameObject gameObjectTree;
     public PlayableDirector timeline;
     public StoryTree storyTree;
+    [Header("UI")]
     public DecisionBoard decisionBoard;
+    public GameObject infoTextField;
+    public EndScreen endScreen;
     public CameraShake cameraShake;
     public CinemachineVirtualCamera virtualCamera;
 
@@ -49,30 +49,31 @@ public class ProtagonistController : MonoBehaviour
     {
         storyTree.InitTree();
         animator = GetComponent<Animator>();
-        EventManager.instance.SubscribeToEvent("Event1", HandleEvent1);
-        EventManager.instance.SubscribeToEvent("Event2", HandleEvent2);
+        StartCoroutine(ShowInfo("Willkommen zu dieser Reise durch die Augen einer Biene."));
+        //EventManager.instance.SubscribeToEvent("Event1", HandleEvent1);
+        //EventManager.instance.SubscribeToEvent("Event2", HandleEvent2);
         // Subscribe to more events as needed
     }
 
-    void HandleEvent1()
-    {
-        // Handle Event1
-        Debug.Log("Received Event1.");
-    }
+    //void HandleEvent1()
+    //{
+    //    // Handle Event1
+    //    Debug.Log("Received Event1.");
+    //}
 
-    void HandleEvent2()
-    {
-        // Handle Event2
-        Debug.Log("Received Event2.");
-    }
-    // Handle more events as needed
+    //void HandleEvent2()
+    //{
+    //    // Handle Event2
+    //    Debug.Log("Received Event2.");
+    //}
+    //// Handle more events as needed
 
-    private void OnDestroy()
-    {
-        EventManager.instance.UnsubscribeFromEvent("Event1", HandleEvent1);
-        EventManager.instance.UnsubscribeFromEvent("Event2", HandleEvent2);
-        // Unsubscribe from more events as needed
-    }
+    //private void OnDestroy()
+    //{
+    //    EventManager.instance.UnsubscribeFromEvent("Event1", HandleEvent1);
+    //    EventManager.instance.UnsubscribeFromEvent("Event2", HandleEvent2);
+    //    // Unsubscribe from more events as needed
+    //}
 
     private void Update()
     {
@@ -185,6 +186,10 @@ public class ProtagonistController : MonoBehaviour
         currentDestinationPoint = nextPoint;
         //storyTree.MakeChoice(decisionBoard.GetDecision());
         destinationCount = 0;
+        if (!string.IsNullOrEmpty(currentDestinationPoint.GetChild(0).GetComponent<NodeValueContainer>().optionalInfo))
+        {
+            StartCoroutine(ShowInfo(currentDestinationPoint.GetChild(0).GetComponent<NodeValueContainer>().optionalInfo));
+        }
         SetDestination(currentDestinationPoint.GetChild(0));
     }
 
@@ -204,8 +209,28 @@ public class ProtagonistController : MonoBehaviour
         }
 
         Debug.Log("Restting look at.");
-        nvc.lookAt = null;
+        Quaternion oldRot = virtualCamera.transform.rotation;
+        virtualCamera.LookAt = null;
+        transform.rotation = oldRot;
         SetDestination(transform);
+    }
+
+    private IEnumerator ShowInfo(string infoText)
+    {
+        infoTextField.SetActive(true);
+        int size = infoText.Length;
+        float duration = size / 15;
+
+        Debug.Log("Showing info for " + duration + " seconds.");
+        infoTextField.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = infoText;
+
+        while (duration > 0f)
+        {
+            duration -= Time.deltaTime;
+            yield return null;
+        }
+
+        infoTextField.SetActive(false);
     }
 
     private void MoveToDestination()
@@ -216,32 +241,48 @@ public class ProtagonistController : MonoBehaviour
         {
             cameraShake.Reset();
 
-            // Reached the destination
-            // Look for a new Point in the Tree, if there is no more point look for choices
-            if (currentDestinationPoint.GetChild(destinationCount + 1).tag == PATH_POINT_TAG)
+            if (currentDestinationPoint.childCount == 0) // Reached a Leaf
             {
-                destinationCount++;               
-                SetDestination(currentDestinationPoint.GetChild(destinationCount));
+                StartCoroutine(Restart());
             }
-            else if (currentDestinationPoint.GetChild(destinationCount + 1).tag == PATH_ANIMATION_TAG)
+            else
             {
-                Debug.Log("Found Animation.");
-
-                isMoving = false;
-                rb.velocity = Vector3.zero; // Stop the rigidbody's velocity
-
-                StartCoroutine(AnimateProtagonist(currentDestinationPoint.GetChild(destinationCount + 1).GetComponent<NodeValueContainer>()));
-                destinationCount++;
-            } else
-            {
-                StartCoroutine(OfferDecicion());
-
-                isMoving = false;
-                if (idleAnimation != null)
+                if(!string.IsNullOrEmpty(currentDestinationPoint.GetChild(destinationCount + 1).GetComponent<NodeValueContainer>().optionalInfo))
                 {
-                    animator.Play(idleAnimation.name);
+                    StartCoroutine(ShowInfo(currentDestinationPoint.GetChild(destinationCount + 1).GetComponent<NodeValueContainer>().optionalInfo));
+                } 
+                // Reached the destination
+                // Look for a new Point in the Tree, if there is no more point look for choices
+                if (currentDestinationPoint.GetChild(destinationCount + 1).tag == PATH_POINT_TAG)
+                {
+                    destinationCount++;
+                    SetDestination(currentDestinationPoint.GetChild(destinationCount));
                 }
-                rb.velocity = Vector3.zero; // Stop the rigidbody's velocity
+                else if (currentDestinationPoint.GetChild(destinationCount + 1).tag == PATH_ANIMATION_TAG)
+                {
+                    Debug.Log("Found Animation.");
+
+                    isMoving = false;
+                    rb.velocity = Vector3.zero; // Stop the rigidbody's velocity
+
+                    StartCoroutine(AnimateProtagonist(currentDestinationPoint.GetChild(destinationCount + 1).GetComponent<NodeValueContainer>()));
+                    destinationCount++;
+                }
+                else
+                {
+                    Quaternion oldRot = virtualCamera.transform.rotation;
+                    virtualCamera.LookAt = null;
+                    transform.rotation = oldRot;
+
+                    StartCoroutine(OfferDecicion());
+
+                    isMoving = false;
+                    if (idleAnimation != null)
+                    {
+                        animator.Play(idleAnimation.name);
+                    }
+                    rb.velocity = Vector3.zero; // Stop the rigidbody's velocity
+                }
             }
         }
         else
@@ -254,6 +295,27 @@ public class ProtagonistController : MonoBehaviour
             // Smoothly rotate towards the destination
             //Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
             //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
+        }
+    }
+
+    private IEnumerator Restart()
+    {
+        endScreen.gameObject.SetActive(true);
+
+        while (!endScreen.end && !endScreen.restart)
+        {
+            yield return null;
+        }
+
+        if(endScreen.restart)
+        {
+            timeline.Stop();
+            timeline.time = 0;
+
+            timeline.Play();
+        } else if(endScreen.end)
+        {
+            Application.Quit();
         }
     }
 }

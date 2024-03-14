@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class NodeValueContainer : MonoBehaviour
 {
+    public string optionalInfo = null;
+
     [Header("Point Values")]
     public float speed = 0.1f;
 
