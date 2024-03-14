@@ -14,6 +14,7 @@ public class ProtagonistController : MonoBehaviour
     private const string PATH_CHOICE_TAG = "Path_Choice";
     private const string PATH_ANIMATION_TAG = "Path_Animation";
 
+    public bool useDevSpeed = true;
     public float moveSpeed = 3f; // Adjust the bee's movement speed as needed
     public float turnSpeed = 5f;
     public float stoppingDistance = 0.1f; // Adjust the distance to stop near the destination
@@ -32,10 +33,16 @@ public class ProtagonistController : MonoBehaviour
     private Transform currentDestinationPoint;
     private int destinationCount = 0;
 
+    private float devSpeed = 100f;
+
     private void Awake()
     {
         if(cameraShake ==  null) cameraShake = GetComponent<CameraShake>();
         storyTree = new StoryTree();
+        if(useDevSpeed)
+        {
+            stoppingDistance = 2f;
+        }
     }
 
     void Start()
@@ -92,6 +99,14 @@ public class ProtagonistController : MonoBehaviour
     {
         if(destination != this.transform) moveSpeed = destination.GetComponent<NodeValueContainer>().speed;
         else moveSpeed = 100;
+
+        virtualCamera.LookAt = destination;
+
+        if(useDevSpeed)
+        {
+            moveSpeed = devSpeed;
+        }
+
         currentDestination = destination.position;
         isMoving = true;
         if (idleAnimation != null)
@@ -154,17 +169,17 @@ public class ProtagonistController : MonoBehaviour
 
         while(!decisionBoard.AwaitDecision()) yield return null;
 
-        Debug.Log("Decision was made");
+        Debug.Log("Decision was made. " + alternateDecision + "  " + decisionBoard.GetDecision());
         decisionBoard.UnInitDecision();
         Transform nextPoint;
-        if (decisionBoard.GetDecision() == alternateDecision && alternateRoute != null)
+        nextPoint = currentDestinationPoint.GetChild(numberPoints + decisionBoard.GetDecision());
+
+        if(nextPoint != null && nextPoint.GetComponent<NodeValueContainer>().choiceRedirect != null)
         {
-            nextPoint = alternateRoute.transform;
+            Debug.Log("Redirecting.");
+            nextPoint = nextPoint.GetComponent<NodeValueContainer>().choiceRedirect.transform;
         }
-        else
-        {
-            nextPoint = currentDestinationPoint.GetChild(numberPoints + decisionBoard.GetDecision());
-        }
+
         if (nextPoint.tag == PATH_POINT_TAG) Debug.LogError("Returned a Point as Choice.");
 
         currentDestinationPoint = nextPoint;
@@ -188,6 +203,7 @@ public class ProtagonistController : MonoBehaviour
             yield return null;
         }
 
+        Debug.Log("Restting look at.");
         nvc.lookAt = null;
         SetDestination(transform);
     }
@@ -236,8 +252,8 @@ public class ProtagonistController : MonoBehaviour
             cameraShake.MoveCamera(rb.velocity.magnitude);
 
             // Smoothly rotate towards the destination
-            Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
+            //Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+            //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
         }
     }
 }
