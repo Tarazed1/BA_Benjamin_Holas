@@ -91,6 +91,8 @@ public class ProtagonistController : MonoBehaviour
     public void InitGame()
     {
         currentDestinationPoint = gameObjectTree.transform.GetChild(0);
+        Debug.Log(currentDestinationPoint.name + "   " + destinationCount);
+        destinationCount = 0;
         SetDestination(gameObjectTree.transform.GetChild(0).GetChild(destinationCount));
     }
 
@@ -241,11 +243,10 @@ public class ProtagonistController : MonoBehaviour
         {
             cameraShake.Reset();
 
-            if (currentDestinationPoint.childCount == 0) // Reached a Leaf
+            if(destinationCount +1 == currentDestinationPoint.childCount && currentDestinationPoint.GetChild(destinationCount).childCount == 0)
             {
                 StartCoroutine(Restart());
-            }
-            else
+            } else
             {
                 if(!string.IsNullOrEmpty(currentDestinationPoint.GetChild(destinationCount + 1).GetComponent<NodeValueContainer>().optionalInfo))
                 {
@@ -309,10 +310,13 @@ public class ProtagonistController : MonoBehaviour
 
         if(endScreen.restart)
         {
+            Debug.Log("Restarting Game.");
             timeline.Stop();
             timeline.time = 0;
+            destinationCount = 0;
 
             timeline.Play();
+            endScreen.ResetEndScreen();
         } else if(endScreen.end)
         {
             Application.Quit();

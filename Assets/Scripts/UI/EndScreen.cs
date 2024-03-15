@@ -33,5 +33,6 @@ public class EndScreen : MonoBehaviour
     {
         restart = false;
         end = false;
+        gameObject.SetActive(false);
     }
 }

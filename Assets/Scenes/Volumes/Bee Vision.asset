@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 221518ef91623a7438a71fef23660601, type: 3}
   m_Name: WhiteBalance
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   temperature:
     m_OverrideState: 0
     m_Value: 0
   tint:
     m_OverrideState: 1
-    m_Value: 26
+    m_Value: -1
 --- !u!114 &-7290832081936402939
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -31,7 +31,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ccf1aba9553839d41ae37dd52e9ebcce, type: 3}
   m_Name: MotionBlur
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   mode:
     m_OverrideState: 0
     m_Value: 0
@@ -90,7 +90,7 @@ MonoBehaviour:
     m_Value: 0.09
   contrast:
     m_OverrideState: 1
-    m_Value: -22
+    m_Value: -12
   colorFilter:
     m_OverrideState: 0
     m_Value: {r: 1, g: 0.9962646, b: 0.99607843, a: 1}
@@ -99,7 +99,7 @@ MonoBehaviour:
     m_Value: 16
   saturation:
     m_OverrideState: 1
-    m_Value: -0
+    m_Value: -19
 --- !u!114 &-1865184654610096139
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -118,7 +118,7 @@ MonoBehaviour:
     m_Value: 1
   gaussianStart:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.4
   gaussianEnd:
     m_OverrideState: 1
     m_Value: 0.46
@@ -130,7 +130,7 @@ MonoBehaviour:
     m_Value: 1
   focusDistance:
     m_OverrideState: 1
-    m_Value: 0.91
+    m_Value: 0.9
   aperture:
     m_OverrideState: 1
     m_Value: 32
@@ -161,13 +161,12 @@ MonoBehaviour:
   components:
   - {fileID: -8702410252743686474}
   - {fileID: -3748479340308459121}
-  - {fileID: 1053531060272086144}
   - {fileID: -4939672397365015797}
-  - {fileID: 2036352533625077177}
   - {fileID: 3398798045999228533}
   - {fileID: -1865184654610096139}
   - {fileID: -7290832081936402939}
---- !u!114 &1053531060272086144
+  - {fileID: 3086566425429396427}
+--- !u!114 &3086566425429396427
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -176,53 +175,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdfbdbb87d3286943a057f7791b43141, type: 3}
-  m_Name: ChannelMixer
+  m_Script: {fileID: 11500000, guid: 3a1063d0db88d6c44abc34ab57ca3f58, type: 3}
+  m_Name: CustomDoFEffect
   m_EditorClassIdentifier: 
   active: 0
-  redOutRedIn:
-    m_OverrideState: 1
-    m_Value: -23
-  redOutGreenIn:
-    m_OverrideState: 1
-    m_Value: 0
-  redOutBlueIn:
-    m_OverrideState: 1
-    m_Value: 0
-  greenOutRedIn:
-    m_OverrideState: 1
-    m_Value: 0
-  greenOutGreenIn:
-    m_OverrideState: 1
-    m_Value: 110
-  greenOutBlueIn:
-    m_OverrideState: 1
-    m_Value: 0
-  blueOutRedIn:
-    m_OverrideState: 1
-    m_Value: 0
-  blueOutGreenIn:
-    m_OverrideState: 1
-    m_Value: 0
-  blueOutBlueIn:
-    m_OverrideState: 1
-    m_Value: 100
---- !u!114 &2036352533625077177
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81180773991d8724ab7f2d216912b564, type: 3}
-  m_Name: ChromaticAberration
-  m_EditorClassIdentifier: 
-  active: 0
-  intensity:
-    m_OverrideState: 1
-    m_Value: 0
+  blurStrength:
+    m_OverrideState: 0
+    m_Value: 7.75
+  focusDistance:
+    m_OverrideState: 0
+    m_Value: 10
+  focusRange:
+    m_OverrideState: 0
+    m_Value: 10
 --- !u!114 &3398798045999228533
 MonoBehaviour:
   m_ObjectHideFlags: 3
