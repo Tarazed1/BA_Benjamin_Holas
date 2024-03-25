@@ -61,7 +61,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RefractionNormal:
-        m_Texture: {fileID: 2800000, guid: 2d76ba222613cdc459abedb052fc1664, type: 3}
+        m_Texture: {fileID: 2800000, guid: 598b14995c5f677498540e972fd9b3c9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
