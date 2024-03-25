@@ -20,6 +20,7 @@ public class ProtagonistController : MonoBehaviour
     public GameObject gameObjectTree;
     public PlayableDirector timeline;
     public StoryTree storyTree;
+    public Transform startPos;
     [Header("UI")]
     public DecisionBoard decisionBoard;
     public GameObject infoTextField;
@@ -90,6 +91,7 @@ public class ProtagonistController : MonoBehaviour
 
     public void InitGame()
     {
+        MovePlayer(startPos.position);
         currentDestinationPoint = gameObjectTree.transform.GetChild(0);
         Debug.Log(currentDestinationPoint.name + "   " + destinationCount);
         destinationCount = 0;
@@ -297,6 +299,11 @@ public class ProtagonistController : MonoBehaviour
             //Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
             //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
         }
+    }
+
+    private void MovePlayer(Vector3 position)
+    {
+        this.gameObject.transform.position = position;  
     }
 
     private IEnumerator Restart()
